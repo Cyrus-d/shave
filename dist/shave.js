@@ -1,6 +1,6 @@
 /**
   shave - Shave is a javascript plugin that truncates multi-line text within a html element based on set max height
-  @version v2.5.1
+  @version v2.5.7
   @link https://github.com/dollarshaveclub/shave#readme
   @author Jeff Wainwright <yowainwright@gmail.com> (jeffry.in)
   @license MIT
@@ -8,12 +8,12 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global.shave = factory());
+  (global = global || self, global.shave = factory());
 }(this, (function () { 'use strict';
 
   function shave(target, maxHeight) {
     var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    if (!maxHeight) throw Error('maxHeight is required');
+    if (typeof maxHeight === 'undefined' || isNaN(maxHeight)) throw Error('maxHeight is required');
     var els = typeof target === 'string' ? document.querySelectorAll(target) : target;
     if (!els) return;
     var character = opts.character || '…';
@@ -61,13 +61,18 @@
 
         el[textProp] = spaces ? words.slice(0, pivot).join(' ') : words.slice(0, pivot);
         el.insertAdjacentHTML('beforeend', charHtml);
-        if (el.offsetHeight > maxHeight) max = spaces ? pivot - 1 : pivot - 2;else min = pivot;
+        if (el.offsetHeight > maxHeight) max = pivot - 1;else min = pivot;
       }
 
       el[textProp] = spaces ? words.slice(0, max).join(' ') : words.slice(0, max);
       el.insertAdjacentHTML('beforeend', charHtml);
       var diff = spaces ? " ".concat(words.slice(max).join(' ')) : words.slice(max);
-      el.insertAdjacentHTML('beforeend', "<span class=\"".concat(classname, "\" style=\"display:none;\">").concat(diff, "</span>"));
+      var shavedText = document.createTextNode(diff);
+      var elWithShavedText = document.createElement('span');
+      elWithShavedText.classList.add(classname);
+      elWithShavedText.style.display = 'none';
+      elWithShavedText.appendChild(shavedText);
+      el.insertAdjacentElement('beforeend', elWithShavedText);
       styles.height = heightStyle;
       styles.maxHeight = maxHeightStyle;
     }

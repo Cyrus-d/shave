@@ -1,5 +1,5 @@
 export default function shave (target, maxHeight, opts = {}) {
-  if (!maxHeight) throw Error('maxHeight is required')
+  if (typeof maxHeight === 'undefined' || isNaN(maxHeight)) throw Error('maxHeight is required')
   let els = (typeof target === 'string') ? document.querySelectorAll(target) : target
   if (!els) return
 
@@ -49,7 +49,7 @@ export default function shave (target, maxHeight, opts = {}) {
       pivot = (min + max + 1) >> 1 // eslint-disable-line no-bitwise
       el[textProp] = spaces ? words.slice(0, pivot).join(' ') : words.slice(0, pivot)
       el.insertAdjacentHTML('beforeend', charHtml)
-      if (el.offsetHeight > maxHeight) max = spaces ? pivot - 1 : pivot - 2
+      if (el.offsetHeight > maxHeight) max = pivot - 1
       else min = pivot
     }
 
@@ -57,10 +57,12 @@ export default function shave (target, maxHeight, opts = {}) {
     el.insertAdjacentHTML('beforeend', charHtml)
     const diff = spaces ? ` ${words.slice(max).join(' ')}` : words.slice(max)
 
-    el.insertAdjacentHTML(
-      'beforeend',
-      `<span class="${classname}" style="display:none;">${diff}</span>`,
-    )
+    const shavedText = document.createTextNode(diff)
+    const elWithShavedText = document.createElement('span')
+    elWithShavedText.classList.add(classname)
+    elWithShavedText.style.display = 'none'
+    elWithShavedText.appendChild(shavedText)
+    el.insertAdjacentElement('beforeend', elWithShavedText)
 
     styles.height = heightStyle
     styles.maxHeight = maxHeightStyle
